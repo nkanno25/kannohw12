@@ -19,7 +19,6 @@ const getRoles = () => {
             return;
         }
         for (let i = 0; i < rows.length; i++) {
-            // roleArr.push(rows[i].title);
             var rolesData = {
                 name: rows[i].title,
                 value: rows[i].id,
@@ -50,16 +49,21 @@ const getDepts = () => {
 getDepts();
 
 const getEmps = () => {
-    const sql = 'SELECT first_name, last_name FROM employee;';
+    const sql = 'SELECT first_name, last_name, id FROM employee;';
     db.query(sql, (err, rows) => {
         if (err) {
             console.log(err);
             return;
         }
         for (let i = 0; i < rows.length; i++) {
+            var emp = {
+                name: rows[i].first_name + " " + rows[i].last_name,
+                value: rows[i].id,
+            }
             let empName = rows[i].first_name + " " + rows[i].last_name;
-            empArr.push(empName);
+            empArr.push(emp);
         }
+        console.log(empArr)
     })
     return empArr;
 };
@@ -69,7 +73,10 @@ const selectManager = () => {
     db.query(sql, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            managerArr.push(res[i].first_name);
+            var man = {
+                name: res[i].first_name, value: res[i].id
+            }
+            managerArr.push(man);
         }
     });
 };
@@ -197,7 +204,7 @@ const addRole = () => {
         {
             type: 'input',
             name: 'role',
-            message: 'What is the title of the new role?', // change question names
+            message: 'What is the title of the new role?', 
             validate: nameInput => {
                 if (!nameInput) {
                     return false;
@@ -303,24 +310,34 @@ const addEmp = () => {
         });
     })
 };
-
+getEmps()
 const updateEmpRole = () => {
-    empArr = getEmps();
+    // empArr = getEmps();
 
     inquirer.prompt([
         {
             type: 'list',
             name: 'employee',
             message: 'Select the employee to update.',
-            choices: []
+            choices: empArr
         },
         {
             type: 'list',
             name: 'newRole',
             message: 'Select their new role.',
-            choices: []
+            choices: roleArr
         }
-    ]).then()
+    ]).then((res)=> {
+        console.log(res)
+        const sql2 = `UPDATE employee SET role_id=${res.newRole} WHERE id=${res.employee}`;
+        db.query(sql2, (err) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            promptMenu()
+        });        
+    })
 
 };
 
